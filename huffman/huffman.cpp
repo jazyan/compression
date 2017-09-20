@@ -3,6 +3,7 @@
 #include <iostream>
 #include <assert.h>
 #include <string>
+#include <vector>
 using namespace std;
 
 // http://www.geeksforgeeks.org/greedy-algorithms-set-3-huffman-coding/
@@ -12,8 +13,8 @@ class node {
     bool operator<(const node& other) const {
         return freq > other.freq;  // for q.pop to return lowest frequency
     }
-    char value;
-    int freq;
+    char value = ' ';
+    int freq = 0;
     node* left = NULL;
     node* right = NULL;
 };
@@ -55,17 +56,26 @@ node huffman_tree(priority_queue<node>& q) {
 }
 
 // left node should be 0, right node should be 1 
-// TODO: why is it that this guarantees unique prefixes?
-// because all the nodes are leaves? are they all leaves? --> yes, they have no children lol
-void traverse_tree(node& n, string& s) {
-    ofstream outfile("translate.txt");
-    if (n.left == NULL && n.right == NULL) {
-        outfile << n.value << " " << s << endl;
+void flatten_tree(node* n, int val, vector<int>& res) {    
+    if (n->left == NULL && n->right == NULL) {
+        int ind = static_cast<int>(n->value);
+        cout << "char to ind" << ind << endl;
+        assert(ind < 128);
+        res[ind] = val; 
+        cout << "success?" << endl; 
         return;
     }
-    // TODO: recurse
+    if (n->left != NULL) {
+        assert(n->value != 'H');
+        cout << "fff" << endl;
+        flatten_tree(n->left, val << 1, res);
+    }
+    if (n->right != NULL) {
+        assert(n->value == ' ' && n->value && "right");
+        cout << "rrr" << endl;
+        flatten_tree(n->right, (val << 1) + 1, res);
+    }
 }
-
 
 int main () {
     ifstream infile("freq.txt");
@@ -75,8 +85,14 @@ int main () {
         node n;
         n.value = a;
         n.freq = b;
+        n.left = NULL;
+        n.right = NULL;
         q.push(n);
     }
     node root = huffman_tree(q);
+    vector<int> dict(128, 0);
+    flatten_tree(&root, 0, dict);
+
+    //cout << dict['a'] << endl; 
     return 0;
 }
